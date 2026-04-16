@@ -14,6 +14,22 @@ export default function Landing() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeFaq, setActiveFaq] = useState<number | null>(null);
+  const [currentBg, setCurrentBg] = useState(0);
+
+  const backgroundImages = [
+    "https://images.unsplash.com/photo-1523240795612-9a054b0db644?q=80&w=1920&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1515162816999-a0c47dc192f7?q=80&w=1920&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1573164713988-8665fc963095?q=80&w=1920&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1522071820081-009f0129c71c?q=80&w=1920&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1542744173-8e7e53415bb0?q=80&w=1920&auto=format&fit=crop"
+  ];
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentBg((prev) => (prev + 1) % backgroundImages.length);
+    }, 5000);
+    return () => clearInterval(timer);
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 20);
@@ -117,6 +133,24 @@ export default function Landing() {
       <main>
         {/* 2. Hero Section */}
         <section className="relative pt-32 pb-20 lg:pt-48 lg:pb-32 px-4 sm:px-6 lg:px-8 overflow-hidden">
+          {/* Sliding Background Images */}
+          <div className="absolute inset-0 -z-20 overflow-hidden">
+            <AnimatePresence mode="popLayout">
+              <motion.img
+                key={currentBg}
+                src={backgroundImages[currentBg]}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 1.5, ease: "easeInOut" }}
+                className="absolute inset-0 w-full h-full object-cover"
+                alt="Background"
+              />
+            </AnimatePresence>
+            {/* Adaptive Overlay to preserve existing text contrast */}
+            <div className="absolute inset-0 bg-slate-50/85 dark:bg-slate-950/85"></div>
+          </div>
+
           {/* Background Gradients */}
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-full overflow-hidden -z-10 pointer-events-none">
             <div className="absolute -top-[20%] -left-[10%] w-[50%] h-[50%] rounded-full bg-indigo-400/20 dark:bg-indigo-900/20 blur-[120px]" />
