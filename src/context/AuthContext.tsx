@@ -1,10 +1,11 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, onAuthStateChanged } from 'firebase/auth';
 import { auth, db } from '../firebase';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
 
 interface AuthContextType {
   user: User | null;
+  userRole: string | null;
   loading: boolean;
   isAuthReady: boolean;
   hasCompletedOnboarding: boolean | null;
@@ -13,6 +14,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
+  userRole: null,
   loading: true,
   isAuthReady: false,
   hasCompletedOnboarding: null,
@@ -23,6 +25,7 @@ export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [userRole, setUserRole] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [isAuthReady, setIsAuthReady] = useState(false);
   const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState<boolean | null>(null);
@@ -58,10 +61,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               uid: currentUser.uid,
               email: currentUser.email,
               displayName: currentUser.displayName,
+              role: currentUser.email === 'zadockselasi7@gmail.com' ? 'admin' : 'user',
               createdAt: new Date().toISOString()
             });
+            setUserRole(currentUser.email === 'zadockselasi7@gmail.com' ? 'admin' : 'user');
           } catch (error) {
             console.error("Error creating user document", error);
+          }
+        } else {
+          const role = userSnap.data().role;
+          if (currentUser.email === 'zadockselasi7@gmail.com' && role !== 'admin') {
+             // Auto-upgrade the default admin if they were created before the role system
+             await updateDoc(userRef, { role: 'admin' });
+             setUserRole('admin');
+          } else {
+             setUserRole(role || 'user');
           }
         }
 
@@ -69,6 +83,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         await checkOnboardingStatus(currentUser.uid);
       } else {
         setHasCompletedOnboarding(null);
+        setUserRole(null);
       }
       
       setLoading(false);
@@ -79,7 +94,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, loading, isAuthReady, hasCompletedOnboarding, checkOnboardingStatus }}>
+    <AuthContext.Provider value={{ user, userRole, loading, isAuthReady, hasCompletedOnboarding, checkOnboardingStatus }}>
       {children}
     </AuthContext.Provider>
   );

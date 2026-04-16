@@ -21,7 +21,7 @@ import {
 import clsx from 'clsx';
 
 export const Layout: React.FC = () => {
-  const { user } = useAuth();
+  const { user, userRole } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -82,6 +82,15 @@ export const Layout: React.FC = () => {
           ))}
           
           <div className="pt-4 mt-4 border-t border-slate-200 dark:border-white/5">
+            {userRole === 'admin' && (
+              <NavLink
+                to="/admin"
+                className="flex items-center px-3 py-2.5 text-sm font-medium rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-slate-200 transition-all duration-200 group mb-1.5"
+              >
+                <Settings className="mr-3 h-5 w-5 flex-shrink-0 text-slate-400 dark:text-slate-500 group-hover:text-slate-600 dark:group-hover:text-slate-300 transition-colors duration-200" />
+                Admin Dashboard
+              </NavLink>
+            )}
             <NavLink
               to="/settings"
               className={({ isActive }) =>
@@ -181,6 +190,16 @@ export const Layout: React.FC = () => {
             </NavLink>
           ))}
           <div className="my-4 border-t border-slate-200 dark:border-white/5"></div>
+          {userRole === 'admin' && (
+            <NavLink
+              to="/admin"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="flex items-center px-3 py-3 text-base font-medium rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-slate-200 transition-all duration-200 group mb-1.5"
+            >
+              <Settings className="mr-3 h-6 w-6 flex-shrink-0 text-slate-400 dark:text-slate-500 group-hover:text-slate-600 dark:group-hover:text-slate-300 transition-colors duration-200" />
+              Admin Dashboard
+            </NavLink>
+          )}
           <NavLink
             to="/settings"
             onClick={() => setIsMobileMenuOpen(false)}
