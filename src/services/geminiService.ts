@@ -1,8 +1,21 @@
 import { GoogleGenAI, Type } from '@google/genai';
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+let aiClient: GoogleGenAI | null = null;
+
+const getAIClient = () => {
+  if (!aiClient) {
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+      console.warn("GEMINI_API_KEY is not set. AI features will not work.");
+      // Return a dummy client or throw an error when actually used
+    }
+    aiClient = new GoogleGenAI({ apiKey: apiKey || 'dummy-key' });
+  }
+  return aiClient;
+};
 
 export const generateCareerRoadmap = async (careerGoal: string, profile?: any) => {
+  const ai = getAIClient();
   let prompt = `Generate a detailed career roadmap for someone who wants to become a "${careerGoal}".`;
   
   if (profile) {
@@ -107,6 +120,7 @@ export const generateCareerRoadmap = async (careerGoal: string, profile?: any) =
 };
 
 export const generateQuiz = async (subject: string, content: string, file?: { data: string, mimeType: string }) => {
+  const ai = getAIClient();
   const prompt = `Generate a quiz based on the following content for the subject "${subject}".
   Create 5 multiple choice questions, 3 true/false questions, and 2 short answer questions.
   
@@ -164,6 +178,7 @@ export const generateQuiz = async (subject: string, content: string, file?: { da
 };
 
 export const generateFlashcards = async (subject: string, content: string, file?: { data: string, mimeType: string }) => {
+  const ai = getAIClient();
   const prompt = `Generate 10 flashcards based on the following content for the subject "${subject}".
   
   Content:
@@ -217,6 +232,7 @@ export const generateFlashcards = async (subject: string, content: string, file?
 };
 
 export const generateStudyPlan = async (weakSubjects: string[], availableHours: number) => {
+  const ai = getAIClient();
   const prompt = `Generate a weekly study plan for a student.
   They have ${availableHours} hours available this week.
   Their weak subjects are: ${weakSubjects.join(', ')}.
@@ -260,6 +276,7 @@ export const generateStudyPlan = async (weakSubjects: string[], availableHours: 
 };
 
 export const getUniversityProgramsAndLevels = async (universityName: string) => {
+  const ai = getAIClient();
   const prompt = `Provide a list of the most common degree levels and top 30 programs/majors offered by ${universityName}.
   For the degree levels, prefer the format "Level 100", "Level 200", "Level 300", "Level 400" etc. if applicable to the region.
   If the university is unknown, provide a generic list of common degree levels (e.g., Level 100, Level 200) and programs.
@@ -295,6 +312,7 @@ export const getUniversityProgramsAndLevels = async (universityName: string) => 
 };
 
 export const generateCV = async (cvData: any, targetJob: string) => {
+  const ai = getAIClient();
   const prompt = `Generate a professional, ATS-friendly CV for someone targeting a "${targetJob}" role.
   Use the following detailed profile data provided by the user:
   ${JSON.stringify(cvData, null, 2)}
@@ -449,6 +467,7 @@ export const generateCV = async (cvData: any, targetJob: string) => {
 };
 
 export const generateSkillGapAnalysis = async (profile: any, targetJob: string) => {
+  const ai = getAIClient();
   const prompt = `Perform a skill gap analysis for someone targeting a "${targetJob}" role.
   Here is their current profile:
   - Current Skills: ${profile.skills || 'None listed'}
@@ -504,6 +523,7 @@ export const generateSkillGapAnalysis = async (profile: any, targetJob: string) 
 };
 
 export const generateSkillDetails = async (skill: string, careerGoal: string) => {
+  const ai = getAIClient();
   const prompt = `Generate a comprehensive learning module for the skill "${skill}" in the context of becoming a "${careerGoal}".
   
   Provide:
@@ -583,6 +603,7 @@ export const generateSkillDetails = async (skill: string, careerGoal: string) =>
 };
 
 export const chatWithStudyBuddy = async (message: string, history: { role: string, text: string }[]) => {
+  const ai = getAIClient();
   try {
     const chat = ai.chats.create({
       model: 'gemini-3-flash-preview',
