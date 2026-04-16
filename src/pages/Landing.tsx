@@ -134,7 +134,7 @@ export default function Landing() {
         {/* 2. Hero Section */}
         <section className="relative pt-32 pb-20 lg:pt-48 lg:pb-32 px-4 sm:px-6 lg:px-8 overflow-hidden">
           {/* Sliding Background Images */}
-          <div className="absolute inset-0 -z-20 overflow-hidden">
+          <div className="absolute inset-0 z-0 overflow-hidden">
             <AnimatePresence mode="popLayout">
               <motion.img
                 key={currentBg}
@@ -148,17 +148,17 @@ export default function Landing() {
               />
             </AnimatePresence>
             {/* Adaptive Overlay to preserve existing text contrast */}
-            <div className="absolute inset-0 bg-slate-50/85 dark:bg-slate-950/85"></div>
+            <div className="absolute inset-0 bg-slate-50/60 dark:bg-slate-950/70"></div>
           </div>
 
           {/* Background Gradients */}
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-full overflow-hidden -z-10 pointer-events-none">
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-full overflow-hidden z-0 pointer-events-none">
             <div className="absolute -top-[20%] -left-[10%] w-[50%] h-[50%] rounded-full bg-indigo-400/20 dark:bg-indigo-900/20 blur-[120px]" />
             <div className="absolute top-[20%] -right-[10%] w-[40%] h-[40%] rounded-full bg-purple-400/20 dark:bg-purple-900/20 blur-[120px]" />
             <div className="absolute -bottom-[10%] left-[20%] w-[60%] h-[40%] rounded-full bg-emerald-400/10 dark:bg-emerald-900/10 blur-[120px]" />
           </div>
 
-          <div className="max-w-7xl mx-auto text-center">
+          <div className="max-w-7xl mx-auto text-center relative z-10">
             <motion.h1 
               initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.1 }}
               className="text-5xl md:text-7xl lg:text-8xl font-extrabold tracking-tight leading-[1.1] mb-8 text-slate-900 dark:text-white"
