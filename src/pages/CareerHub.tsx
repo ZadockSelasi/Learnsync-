@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { db } from '../firebase';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, collection, getDocs, query, where } from 'firebase/firestore';
 import { motion } from 'motion/react';
 import { Briefcase, Building2, UserCircle, Search, ChevronRight, Star, MapPin, GraduationCap, TrendingUp, Award } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -10,35 +10,36 @@ export default function CareerHub() {
   const { user } = useAuth();
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [companies, setCompanies] = useState<any[]>([]);
 
   useEffect(() => {
-    const fetchProfile = async () => {
-      if (!user) return;
+    const fetchProfileAndCompanies = async () => {
       try {
+        // Fetch companies
+        const q = query(collection(db, 'companies'), where('status', '==', 'approved'));
+        const querySnapshot = await getDocs(q);
+        const companiesData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        setCompanies(companiesData.slice(0, 3)); // Just show a few as "Featured" or "Saved"
+
+        if (!user) return;
         const docRef = doc(db, 'careerProfiles', user.uid);
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
           setProfile(docSnap.data());
         }
       } catch (error) {
-        console.error("Error fetching career profile:", error);
+        console.error("Error fetching data:", error);
       } finally {
         setLoading(false);
       }
     };
-    fetchProfile();
+    fetchProfileAndCompanies();
   }, [user]);
 
   const recommendedOpportunities = [
     { id: 1, title: 'Software Engineering Intern', company: 'MTN Ghana', location: 'Accra, Ghana', type: 'Internship', match: 95 },
     { id: 2, title: 'Data Analyst Graduate Trainee', company: 'Hubtel', location: 'Accra, Ghana', type: 'Graduate Program', match: 88 },
     { id: 3, title: 'Product Design Intern', company: 'Paystack', location: 'Remote', type: 'Internship', match: 82 },
-  ];
-
-  const savedCompanies = [
-    { id: 1, name: 'Google', industry: 'Technology', location: 'Global / Remote' },
-    { id: 2, name: 'Tullow Oil', industry: 'Energy', location: 'Accra, Ghana' },
-    { id: 3, name: 'Brij', industry: 'Fintech', location: 'Accra, Ghana' },
   ];
 
   return (
@@ -180,26 +181,32 @@ export default function CareerHub() {
             </Link>
           </div>
 
-          {/* Saved Companies */}
+          {/* Featured Companies */}
           <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-100 dark:border-slate-800 shadow-sm">
             <div className="flex justify-between items-center mb-4">
               <h3 className="font-bold text-slate-900 dark:text-white flex items-center gap-2">
                 <Building2 className="h-5 w-5 text-slate-400 dark:text-slate-500" />
-                Saved Companies
+                Featured Companies
               </h3>
             </div>
             <div className="space-y-3">
-              {savedCompanies.map(company => (
-                <div key={company.id} className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors cursor-pointer">
-                  <div className="w-10 h-10 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center font-bold text-slate-500 dark:text-slate-400">
-                    {company.name.charAt(0)}
+              {companies.length > 0 ? companies.map(company => (
+                <Link to="/career/companies" key={company.id} className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors cursor-pointer">
+                  <div className="w-10 h-10 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center font-bold text-slate-500 dark:text-slate-400 overflow-hidden">
+                    {company.logoUrl ? (
+                      <img src={company.logoUrl} alt={company.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                    ) : (
+                      company.name.charAt(0)
+                    )}
                   </div>
                   <div>
                     <h4 className="font-medium text-slate-900 dark:text-white text-sm">{company.name}</h4>
                     <p className="text-xs text-slate-500 dark:text-slate-400">{company.industry}</p>
                   </div>
-                </div>
-              ))}
+                </Link>
+              )) : (
+                <p className="text-sm text-slate-500 dark:text-slate-400">No companies available yet.</p>
+              )}
             </div>
             <Link to="/career/companies" className="block mt-4 text-center text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:underline">
               Discover more companies
