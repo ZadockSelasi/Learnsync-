@@ -26,6 +26,7 @@ import Settings from './pages/Settings';
 import CareerHub from './pages/CareerHub';
 import CareerProfile from './pages/CareerProfile';
 import CareerOpportunities from './pages/CareerOpportunities';
+import JobDetails from './pages/JobDetails';
 import CareerCompanies from './pages/CareerCompanies';
 import CVBuilder from './pages/CVBuilder';
 import SkillGapAnalysis from './pages/SkillGapAnalysis';
@@ -36,6 +37,7 @@ import CompanyRegistration from './pages/CompanyRegistration';
 import AdminUsers from './pages/admin/AdminUsers';
 import AdminPerformance from './pages/admin/AdminPerformance';
 import AdminCompanies from './pages/admin/AdminCompanies';
+import AdminJobs from './pages/admin/AdminJobs';
 
 export default function App() {
   return (
@@ -58,6 +60,7 @@ export default function App() {
               <Route path="/career" element={<CareerHub />} />
               <Route path="/career/profile" element={<CareerProfile />} />
               <Route path="/career/opportunities" element={<CareerOpportunities />} />
+              <Route path="/career/job/:id" element={<JobDetails />} />
               <Route path="/career/companies" element={<CareerCompanies />} />
               <Route path="/career/cv-builder" element={<CVBuilder />} />
               <Route path="/career/skill-gap" element={<SkillGapAnalysis />} />
@@ -71,6 +74,7 @@ export default function App() {
               <Route path="/admin/users" element={<AdminUsers />} />
               <Route path="/admin/performance" element={<AdminPerformance />} />
               <Route path="/admin/companies" element={<AdminCompanies />} />
+              <Route path="/admin/jobs" element={<AdminJobs />} />
               <Route path="/admin/settings" element={<Settings />} />
             </Route>
 

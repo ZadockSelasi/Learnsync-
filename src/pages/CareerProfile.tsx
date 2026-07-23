@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { db } from '../firebase';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { motion } from 'motion/react';
 import { Save, User, BookOpen, Target, Briefcase, MapPin, CheckCircle2, Search, Loader2 } from 'lucide-react';
 import { getUniversityProgramsAndLevels } from '../services/geminiService';
@@ -143,17 +143,21 @@ export default function CareerProfile() {
   ]);
   const [isFetchingPrograms, setIsFetchingPrograms] = useState(false);
 
+  // Applications State
+  const [myApplications, setMyApplications] = useState<any[]>([]);
+  const [loadingApps, setLoadingApps] = useState(true);
+
   useEffect(() => {
-    const fetchProfile = async () => {
+    const fetchProfileAndApps = async () => {
       if (!user) return;
       try {
+        // Fetch Profile
         const docRef = doc(db, 'careerProfiles', user.uid);
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
           const data = docSnap.data() as any;
           setFormData({ ...formData, ...data });
           
-          // If they already have a school, fetch its specific programs
           if (data.school) {
             getUniversityProgramsAndLevels(data.school).then(res => {
               if (res.programs && res.programs.length > 0) setUniversityPrograms(res.programs);
@@ -163,11 +167,37 @@ export default function CareerProfile() {
         } else {
           setFormData(prev => ({ ...prev, fullName: user.displayName || '' }));
         }
+
+        // Fetch Applications
+        const q = query(collection(db, 'jobApplications'), where('userId', '==', user.uid));
+        const appsSnap = await getDocs(q);
+        
+        // Fetch job details for each application
+        const appsData = await Promise.all(appsSnap.docs.map(async (appDoc) => {
+          const appData = appDoc.data();
+          let jobData = { title: 'Unknown Job', company: 'Unknown Company' };
+          try {
+            const jobSnap = await getDoc(doc(db, 'jobs', appData.jobId));
+            if (jobSnap.exists()) {
+              jobData = jobSnap.data() as any;
+            }
+          } catch (e) {
+            console.error("Error fetching job for app", e);
+          }
+          return { id: appDoc.id, ...appData, job: jobData };
+        }));
+        
+        // Sort by appliedAt descending
+        appsData.sort((a: any, b: any) => new Date(b.appliedAt).getTime() - new Date(a.appliedAt).getTime());
+        setMyApplications(appsData);
+        setLoadingApps(false);
+
       } catch (error) {
-        console.error("Error fetching profile:", error);
+        console.error("Error fetching data:", error);
+        setLoadingApps(false);
       }
     };
-    fetchProfile();
+    fetchProfileAndApps();
   }, [user]);
 
   // Handle click outside for dropdown
@@ -495,6 +525,48 @@ export default function CareerProfile() {
           </button>
         </div>
       </form>
+
+      {/* My Applications */}
+      <div className="bg-white dark:bg-slate-900 p-8 rounded-3xl border border-slate-100 dark:border-slate-800 shadow-sm mt-8">
+        <h2 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2 mb-6">
+          <Briefcase className="h-5 w-5 text-indigo-500" />
+          My Applications
+        </h2>
+        
+        {loadingApps ? (
+          <div className="flex justify-center py-8">
+            <Loader2 className="w-8 h-8 animate-spin text-indigo-500" />
+          </div>
+        ) : myApplications.length === 0 ? (
+          <div className="text-center py-8 text-slate-500 dark:text-slate-400">
+            You haven't applied to any jobs yet.
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {myApplications.map((app) => (
+              <div key={app.id} className="p-4 rounded-2xl border border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-50/50 dark:bg-white/[0.02]">
+                <div>
+                  <h3 className="font-bold text-slate-900 dark:text-white">{app.job?.title}</h3>
+                  <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">{app.job?.company}</p>
+                </div>
+                <div className="flex flex-col sm:items-end gap-2 shrink-0">
+                  <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
+                    app.status === 'Applied' ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400' :
+                    app.status === 'Interview Scheduled' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' :
+                    app.status === 'Rejected' ? 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400' :
+                    'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300'
+                  }`}>
+                    {app.status}
+                  </span>
+                  <span className="text-xs text-slate-500 dark:text-slate-400">
+                    Applied on {new Date(app.appliedAt).toLocaleDateString()}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

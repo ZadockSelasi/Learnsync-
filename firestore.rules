@@ -110,5 +110,16 @@ service cloud.firestore {
       allow update: if isOwner(userId);
       allow delete: if isOwner(userId);
     }
+
+    match /jobs/{jobId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    
+    match /jobApplications/{applicationId} {
+      allow create: if isRequestOwner();
+      allow read: if isDocOwner() || isAdmin();
+      allow update, delete: if isAdmin();
+    }
   }
 }

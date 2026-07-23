@@ -8,6 +8,7 @@ import {
   Users, 
   Activity, 
   Building2, 
+  Briefcase,
   Settings, 
   LogOut,
   Menu,
@@ -35,6 +36,7 @@ export const AdminLayout: React.FC = () => {
     { name: 'Users', path: '/admin/users', icon: Users },
     { name: 'Performance', path: '/admin/performance', icon: Activity },
     { name: 'Companies', path: '/admin/companies', icon: Building2 },
+    { name: 'Jobs', path: '/admin/jobs', icon: Briefcase },
     { name: 'Settings', path: '/admin/settings', icon: Settings },
   ];
 
